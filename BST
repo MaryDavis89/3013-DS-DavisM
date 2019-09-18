@@ -1,0 +1,374 @@
+/*Mary Davis
+3013 Algorithms
+The program infiles a list of numbers into a vector. It uses a bubble sort
+to sort the vector in ascending order. Then find the middle of the vector
+and insert into to a binary search tree as the root. After, using recursion and the
+recalculations of finding the new fronts and backs to get a new middle value and insert
+each middle as a new node of the tree. Each new left and right middles are the parents
+for the next.*/
+
+#include <iostream>
+#include <fstream>
+#include <vector>
+#include <string>
+
+using namespace std;
+
+struct node
+{
+    int val;
+    node *left;
+    node *right;
+
+    node()
+    {
+        int val = 0;
+        left = NULL;
+        right = NULL;
+    }
+
+    node(int x)
+    {
+        int val = x;
+        left = NULL;
+        right = NULL;
+    }
+};
+
+class BST
+{
+
+private:
+    node *root;
+
+    int count(node *root)
+    {
+        if (!root)
+        {
+            return 0;
+        }
+        else
+        {
+            return 1 + count(root->left) + count(root->right);
+        }
+    }
+
+    void insert(node *&root, node *&temp)
+    {
+        if (!root)
+        {
+            root = temp;
+        }
+        else
+        {
+            if (temp->val < root->val)
+            {
+                insert(root->left, temp);
+            }
+            else
+            {
+                insert(root->right, temp);
+            }
+        }
+    }
+
+    int height(node *root)
+    {
+        if (!root)
+        {
+            return 0;
+        }
+        else
+        {
+            int left = height(root->left);
+            int right = height(root->right);
+            if (left > right)
+            {
+                return left + 1;
+            }
+            else
+            {
+                return right + 1;
+            }
+        }
+    }
+    node *minValueNode(node *root)
+    {
+        node *current = root;
+
+        if (root->right)
+        {
+            current = root->right;
+            while (current->left != NULL)
+            {
+                current = current->left;
+            }
+        }
+        else if (root->left)
+        {
+            current = root->left;
+            while (current->right != NULL)
+            {
+                current = current->right;
+            }
+        }
+
+        return current;
+    }
+    void print_node(node *n, string label = "")
+    {
+        if (label != "")
+        {
+            cout << "[" << label << "]";
+        }
+        cout << "[[" << n << "][" << n->val << "]]\n";
+        if (n->left)
+        {
+            cout << "\t|-->[L][[" << n->left << "][" << n->left->val << "]]\n";
+        }
+        else
+        {
+            cout << "\t\\-->[L][null]\n";
+        }
+        if (n->right)
+        {
+            cout << "\t\\-->[R][[" << n->right << "][" << n->right->val << "]]\n";
+        }
+        else
+        {
+            cout << "\t\\-->[R][null]\n";
+        }
+    }
+
+    /* Print nodes at a given level */
+    void printGivenLevel(node *root, int level)
+    {
+        if (root == NULL)
+            return;
+        if (level == 1)
+        {
+            print_node(root);
+        }
+        else if (level > 1)
+        {
+            printGivenLevel(root->left, level - 1);
+            printGivenLevel(root->right, level - 1);
+        }
+    }
+    //************************************************************************
+    // Method to help create GraphViz code so the expression tree can
+    // be visualized. This method prints out all the unique node id's
+    // by traversing the tree.
+    // Recivies a node pointer to root and performs a simple recursive
+    // tree traversal.
+    //************************************************************************
+    void GraphVizGetIds(node *nodePtr, ofstream &VizOut)
+    {
+        static int NullCount = 0;
+        if (nodePtr)
+        {
+            GraphVizGetIds(nodePtr->left, VizOut);
+            VizOut << "node" << nodePtr->val
+                   << "[label=\"" << nodePtr->val << "\\n"
+                   //<<"Add:"<<nodePtr<<"\\n"
+                   //<<"Par:"<<nodePtr->parent<<"\\n"
+                   //<<"Rt:"<<nodePtr->right<<"\\n"
+                   //<<"Lt:"<<nodePtr->left<<"\\n"
+                   << "\"]" << endl;
+            if (!nodePtr->left)
+            {
+                NullCount++;
+                VizOut << "nnode" << NullCount << "[label=\"X\",shape=point,width=.15]" << endl;
+            }
+            GraphVizGetIds(nodePtr->right, VizOut);
+            if (!nodePtr->right)
+            {
+                NullCount++;
+                VizOut << "nnode" << NullCount << "[label=\"X\",shape=point,width=.15]" << endl;
+            }
+        }
+    }
+
+    //************************************************************************
+    // This method is partnered with the above method, but on this pass it
+    // writes out the actual data from each node.
+    // Don't worry about what this method and the above method do, just
+    // use the output as your told:)
+    //************************************************************************
+    void GraphVizMakeConnections(node *nodePtr, ofstream &VizOut)
+    {
+        static int NullCount = 0;
+        if (nodePtr)
+        {
+            GraphVizMakeConnections(nodePtr->left, VizOut);
+            if (nodePtr->left)
+                VizOut << "node" << nodePtr->val << "->"
+                       << "node" << nodePtr->left->val << endl;
+            else
+            {
+                NullCount++;
+                VizOut << "node" << nodePtr->val << "->"
+                       << "nnode" << NullCount << endl;
+            }
+
+            if (nodePtr->right)
+                VizOut << "node" << nodePtr->val << "->"
+                       << "node" << nodePtr->right->val << endl;
+            else
+            {
+                NullCount++;
+                VizOut << "node" << nodePtr->val << "->"
+                       << "nnode" << NullCount << endl;
+            }
+
+            GraphVizMakeConnections(nodePtr->right, VizOut);
+        }
+    }
+
+public:
+    BST()
+    {
+        root = NULL;
+    }
+    int count()
+    {
+        return count();
+    }
+    void insert(int v)
+    {
+        node *temp = new node(v);
+        insert(root, temp);
+    }
+
+
+    /* Function to line by line print level order traversal a tree*/
+    void printLevelOrder()
+    {
+        cout << "Begin Level Order===================\n";
+        int h = height(root);
+        int i;
+        for (i = 1; i <= h; i++)
+        {
+            printGivenLevel(root, i);
+            cout << "\n";
+        }
+        cout << "End Level Order===================\n";
+    }
+
+    //************************************************************************
+    // Recieves a filename to place the GraphViz data into.
+    // It then calls the above two graphviz methods to create a data file
+    // that can be used to visualize your expression tree.
+    //************************************************************************
+    void GraphVizOut(string filename)
+    {
+        ofstream VizOut;
+        VizOut.open(filename);
+        VizOut << "Digraph G {\n";
+        GraphVizGetIds(root, VizOut);
+        GraphVizMakeConnections(root, VizOut);
+        VizOut << "}\n";
+        VizOut.close();
+    }
+
+        void minValue()
+    {
+        print_node(minValueNode(root), "minVal");
+    }
+
+    int height()
+    {
+
+        return height(root);
+    }
+
+    int top()
+    {
+        if (root)
+            return root->val;
+        else
+            return 0;
+    }
+
+    void FromVecToBST(vector<int> A, int l, int r)
+    {
+        // if left is bigger than right the two halves have crossed
+        //there is no more values in the vector
+        if (l > r)
+        {
+            return;
+        }
+        //calculate new mid with each call
+        int mid = (l + r) / 2;
+
+        //insert mid as a new node into the BST
+        insert(A[mid]);
+        cout << A[mid] << endl;
+
+        //create new end for left half of vector
+        return FromVecToBST(A, l, mid - 1);
+
+        //create new front for right half of vector
+        return FromVecToBST(A, mid + 1, r);
+        
+    }
+};
+
+//bubble sort for vector
+void Sort(vector<int> &A)
+{
+    bool swap = true;
+    while (swap)
+    {
+        swap = false;
+        for (unsigned int i = 0; i < A.size() - 1; i++)
+        {//if left is bigger than right
+            if (A[i] > A[i + 1])
+            {//then swap
+                int temp = A[i + 1];
+                A[i + 1] = A[i];
+                A[i] = temp;
+                swap = true;
+            }
+        }
+    }
+}
+
+
+
+int main()
+{
+
+    ifstream infile;
+    infile.open("input.txt");
+
+    ofstream outfile;
+    outfile.open("output.txt");
+
+    vector<int> A;
+    int x = 0;
+
+    while (infile >> x)
+    {
+        A.push_back(x);
+        cout << x << " ";
+    }
+    cout << endl;
+
+    Sort(A);
+
+    for (unsigned int i = 0; i < A.size(); i++)
+    {
+        cout << A[i] << " ";
+    }
+
+    BST one;
+    int left = 0;
+    int right = A.size();
+
+    cout<<endl;
+
+    one.FromVecToBST(A, left, right);
+    one.GraphVizOut("output.txt");
+    one.printLevelOrder();
+};
