@@ -8,7 +8,7 @@ using namespace std;
 const static double EarthRadiusKm = 6372.8;
 
 inline double DegreeToRadian(double angle) {
-    return M_PI * angle / 180.0;
+    return 3.141592653589 * angle / 180.0;
 }
 
 class Coordinate {

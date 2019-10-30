@@ -1,3 +1,12 @@
+
+
+
+
+
+
+
+
+
 ///////////////////////////////////////////////////////////////////////////////
 // Title:            Heap.hpp
 // Semester:         Fall 2019
@@ -204,6 +213,24 @@ public:
         MaxSize = size;
         HeapSize = 0;
         isMax = max;
+        //delete [] Array;
+    }
+    /**
+     * Function Delete:
+     *      Deletes the array and resets the variables
+     * 
+     * Params:
+     *      void
+     * Returns
+     *      void
+     */
+    Heap Delete(){
+        delete [] Array;
+        Next = 1;
+        MaxSize = size;
+        HeapSize = 0;
+        isMax = max;
+        
     }
 
     /**
